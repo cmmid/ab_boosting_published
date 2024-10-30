@@ -94,3 +94,39 @@ tbA1 <- table1::table1(strata, groupspan=c(5), labels = labels, data = hxonly_df
 
 t1flex(tbA1) %>% 
   save_as_docx(path = here::here("outputs", "tables", "h3cell.docx") )
+
+
+
+
+# Table SX showing the cleaning pipeline
+
+H1N1_cell_info <- readRDS(file = here::here("outputs", "data_clean", "hcw_reg_info_H1N1_cell.RDS") )
+H3N2_cell_info <- readRDS(file = here::here("outputs", "data_clean", "hcw_reg_info_H3N2_cell.RDS") )
+H1N1_vacc_info <- readRDS(file = here::here("outputs", "data_clean", "hcw_reg_info_H1N1_vac.RDS") )
+H3N2_vacc_info <- readRDS(file = here::here("outputs", "data_clean", "hcw_reg_info_H3N2_vac.RDS") )
+
+tableSX <- bind_rows(
+    H1N1_cell_info,
+    H3N2_cell_info,
+    H1N1_vacc_info,
+    H3N2_vacc_info
+)
+
+labels <- list(
+    variables = list( subtype = "Viral strains type",
+                    year = "Year of starin",
+                    samples = "# post-vac samples",
+                    too_close_time = "# samples excluding <8 days post-vac",
+                    missing_vac = "# samples excluding missing vaccine history",
+                    missing_start_titre = "# samples excluding initial titre"
+                    )
+)
+colnames(tableSX) <- c("Viral strains type", "Year of strain", "# post-vac samples", "# samples excluding <8 days post-vac", "# samples excluding missing vaccine history", "# samples excluding initial titre")
+
+tableSX <- tableSX %>% mutate(`Viral strains type` = recode(`Viral strains type`, "H1N1_cell" = "H1N1 circulating", "H3N2_cell" = "H3N2 circulating", "H1N1_vac" = "H1N1 vaccine", "H3N2_vac" = "H3N2 vaccine"))
+
+
+flextable(tableSX)  %>% 
+  save_as_docx(path = here::here("outputs", "tables", "SX.docx") )
+
+

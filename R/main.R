@@ -10,7 +10,7 @@ pacman::p_load(
     # plotting
     "ggh4x", "ggplot2", "ggmcmc", "ggthemes", "ggridges", "patchwork", 'viridis',
     # parallel stuff
-    "foreach", "doParallel", "furrr", "rstatix"
+    "foreach", "doParallel", "furrr", "rstatix", "stringr"
 )
 
 # Load important things

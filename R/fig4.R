@@ -61,7 +61,11 @@ p1 <- ind_traj_subtype_long %>% filter(subtype %in% c("A(H1N1) circulating", "A(
     ggplot() + 
         geom_point(aes(x = titre_vals, y = values, color = vac_hist), shape = 1, alpha = 0.8, 
             position = position_jitterdodge(jitter.width = 0.2)) + theme_bw() + 
-        stat_summary(aes(x = titre_vals, y = values, fill = vac_hist), geom = "point", fun = "mean", stroke = 1.5, shape = 23, alpha = 1, size = 4, 
+        stat_summary(aes(x = titre_vals, y = values, fill = vac_hist), geom = "pointrange", 
+        fun = "mean", 
+        fun.min = function(x) mean(x) - qt(0.975, length(x)-1) * sd(x) / sqrt(length(x)),
+        fun.max = function(x) mean(x) + qt(0.975, length(x)-1) * sd(x) / sqrt(length(x)),
+        stroke = 1.2, shape = 23, alpha = 1, size = 0.8,
             position = position_dodge(0.75)) + 
         #geom_text(data = stat.test_4fold, aes(x = titre_vals, label = 
          #   paste0(p.adj, " (", p.adj.signif, ")")), angle = 90, y = 850) +

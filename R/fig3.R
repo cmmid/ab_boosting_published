@@ -77,7 +77,7 @@ comparbw_t_mean_uncert <- bind_rows(
 p1 <- comparbw_t_mean_uncert %>% mutate(subtype = factor(subtype, levels = c("A(H1N1) vaccinating", "A(H3N2) vaccinating", "A(H1N1) circulating", "A(H3N2) circulating"))) %>%
     filter(subtype %in% c("A(H1N1) circulating", "A(H3N2) circulating")) %>% 
     ggplot() + 
-        geom_boxplot(aes(x = titre_vals, y = values, fill = v), alpha = 0.8, outlier.shape = NA) + 
+        geom_boxplot(aes(x = titre_vals, y = values, fill = v), alpha = 0.8) + 
             theme_bw() + 
             facet_grid(cols = vars(subtype), rows = vars(heuristic)) + 
             scale_y_continuous(

@@ -169,25 +169,6 @@ transformed parameters{
             mu_s_int[site[i]] + mu_g_int[sex[i]] + mu_d_int[age_cat[i]]) + 
             mu_g[sex[i]] + mu_b[vac_hist[i]] + mu_s[site[i]] + mu_d[age_cat[i]];
     }
-      /*  if(ind_vh > 0) {
-            mu_b[i] = z_vh_cat[ind_vh, vac_hist[i]] * sigma_vh[ind_vh]; 
-            mu_b_int[i] = z_vh_cat_int[ind_vh, vac_hist[i]] * sigma_vh_int[ind_vh]; 
-        } 
-        if(ind_d > 0) {
-            mu_d[i] = z_d_cat[ind_d, age_cat[i]] * sigma_d[ind_d]; 
-            mu_d_int[i] = z_d_cat_int[ind_d, age_cat[i]] * sigma_d_int[ind_d]; 
-        } 
-        if(ind_s > 0) {
-            mu_s[i] = z_s_cat[ind_s, site[i]] * sigma_s[ind_s]; 
-            mu_s_int[i] = z_s_cat_int[ind_s, site[i]] * sigma_s_int[ind_s]; 
-        } 
-        if(ind_g > 0) {
-            mu_g[i] = z_g_cat[ind_g, sex[i]] * sigma_g[ind_g]; 
-            mu_g_int[i] = z_g_cat_int[ind_g, sex[i]] * sigma_g_int[ind_g]; 
-        } 
-        boost_ind[i] = mu_t[i] * (1 + mu_b_int[i] +  mu_s_int[i] + mu_g_int[i] + mu_d_int[i]) + 
-            mu_g[i] + mu_b[i] + mu_s[i] + mu_d[i];
-        wane_ind[i] = mu_wane[i];*/
 
     if (ind_ind > 0) {
         boost_ind = boost_ind + z_boost_ind[1] * sigma_b_ind[1];
