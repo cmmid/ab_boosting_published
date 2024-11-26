@@ -10,3 +10,5 @@ inf_data_trim %>% left_join(h3only_df %>% separate(pid, c("pid", "year"), sep = 
     filter(!is.na(base_titre)) %>% pull(pid) %>% unique %>% length
 # 0 individuals in the 2020 and 2021 flu season
 # 34 indivudals in the 2022 flu season
+
+h3only_df %>% separate(pid, c("pid", "year"), sep = "_") %>% pull(pid) %>% unique %>% length

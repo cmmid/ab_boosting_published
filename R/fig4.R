@@ -44,12 +44,12 @@ ind_traj_h3h2cell_ind <- ind_traj_h3h2cell %>% convert_to_segment %>% find_dur_4
 ind_traj_subtype <- bind_rows(
     ind_traj_h1h1_ind %>% mutate(subtype = "A(H1N1) vaccinating"), 
     ind_traj_h3h2_ind %>% mutate(subtype = "A(H3N2) vaccinating"), 
-    ind_traj_h1h1cell_ind %>% mutate(subtype = "A(H1N1) circulating"), 
-    ind_traj_h3h2cell_ind %>% mutate(subtype = "A(H3N2) circulating")) %>%
-    mutate(subtype = factor(subtype, levels = c("A(H1N1) vaccinating", "A(H3N2) vaccinating", "A(H1N1) circulating", "A(H3N2) circulating"))) 
+    ind_traj_h1h1cell_ind %>% mutate(subtype = "A(H1N1) cell-grown"), 
+    ind_traj_h3h2cell_ind %>% mutate(subtype = "A(H3N2) cell-grown")) %>%
+    mutate(subtype = factor(subtype, levels = c("A(H1N1) vaccinating", "A(H3N2) vaccinating", "A(H1N1) cell-grown", "A(H3N2) cell-grown"))) 
 
 
-ind_traj_subtype_long <- ind_traj_subtype %>% mutate(subtype = factor(subtype, levels = c("A(H1N1) vaccinating", "A(H3N2) vaccinating",  "A(H1N1) circulating", "A(H3N2) circulating"))) %>%
+ind_traj_subtype_long <- ind_traj_subtype %>% mutate(subtype = factor(subtype, levels = c("A(H1N1) vaccinating", "A(H3N2) vaccinating",  "A(H1N1) cell-grown", "A(H3N2) cell-grown"))) %>%
     filter(titre_vals != ">160") %>% 
     mutate(dur_40_trunc = pmin(dur_40, 365)) %>%
     mutate(dur_80_trunc = pmin(dur_80, 365)) %>%
@@ -57,7 +57,7 @@ ind_traj_subtype_long <- ind_traj_subtype %>% mutate(subtype = factor(subtype, l
     mutate(heuristic = recode(heuristic, dur_4fold = "4-fold boost", dur_40_trunc = "HAI titre \u2265 1:40" , dur_80_trunc = "HAI titre \u2265 1:80" ))
 
 
-p1 <- ind_traj_subtype_long %>% filter(subtype %in% c("A(H1N1) circulating", "A(H3N2) circulating")) %>%
+p1 <- ind_traj_subtype_long %>% filter(subtype %in% c("A(H1N1) cell-grown", "A(H3N2) cell-grown")) %>%
     ggplot() + 
         geom_point(aes(x = titre_vals, y = values, color = vac_hist), shape = 1, alpha = 0.8, 
             position = position_jitterdodge(jitter.width = 0.2)) + theme_bw() + 
@@ -172,22 +172,22 @@ cal_ks_80 <- function(ind_traj_h3h2_ind, string_name) {
 
 df_h1n1_ks <- cal_ks_4fold(ind_traj_h1h1_ind, "A(H1N1) vaccinating")
 df_h3n2_ks <- cal_ks_4fold(ind_traj_h3h2_ind, "A(H3N2) vaccinating")
-df_h1n1cell_ks <- cal_ks_4fold(ind_traj_h1h1cell_ind, "A(H1N1) circulating")
-df_h3n2cell_ks <- cal_ks_4fold(ind_traj_h3h2cell_ind, "A(H3N2) circulating")
+df_h1n1cell_ks <- cal_ks_4fold(ind_traj_h1h1cell_ind, "A(H1N1) cell-grown")
+df_h3n2cell_ks <- cal_ks_4fold(ind_traj_h3h2cell_ind, "A(H3N2) cell-grown")
 
 df_ks_4fold <- bind_rows(df_h1n1_ks, df_h3n2_ks, df_h1n1cell_ks, df_h3n2cell_ks) %>% mutate(heuristic = "4-fold rise")
 
 df_h1n1_ks <- cal_ks_40(ind_traj_h1h1_ind, "A(H1N1) vaccinating")
 df_h3n2_ks <- cal_ks_40(ind_traj_h3h2_ind, "A(H3N2) vaccinating")
-df_h1n1cell_ks <- cal_ks_40(ind_traj_h1h1cell_ind, "A(H1N1) circulating")
-df_h3n2cell_ks <- cal_ks_40(ind_traj_h3h2cell_ind, "A(H3N2) circulating")
+df_h1n1cell_ks <- cal_ks_40(ind_traj_h1h1cell_ind, "A(H1N1) cell-grown")
+df_h3n2cell_ks <- cal_ks_40(ind_traj_h3h2cell_ind, "A(H3N2) cell-grown")
 
 df_ks_40 <- bind_rows(df_h1n1_ks, df_h3n2_ks, df_h1n1cell_ks, df_h3n2cell_ks) %>% mutate(heuristic = "HAI titre \u2265 1:40")
 
 df_h1n1_ks <- cal_ks_80(ind_traj_h1h1_ind, "A(H1N1) vaccinating")
 df_h3n2_ks <- cal_ks_80(ind_traj_h3h2_ind, "A(H3N2) vaccinating")
-df_h1n1cell_ks <- cal_ks_80(ind_traj_h1h1cell_ind, "A(H1N1) circulating")
-df_h3n2cell_ks <- cal_ks_80(ind_traj_h3h2cell_ind, "A(H3N2) circulating")
+df_h1n1cell_ks <- cal_ks_80(ind_traj_h1h1cell_ind, "A(H1N1) cell-grown")
+df_h3n2cell_ks <- cal_ks_80(ind_traj_h3h2cell_ind, "A(H3N2) cell-grown")
 
 df_ks_80 <- bind_rows(df_h1n1_ks, df_h3n2_ks, df_h1n1cell_ks, df_h3n2cell_ks) %>% mutate(heuristic = "HAI titre \u2265 1:80")
 
@@ -196,8 +196,8 @@ df_ks <- bind_rows(df_ks_4fold, df_ks_40, df_ks_80) %>%
     mutate(titre_val = factor(titre_val, levels = c("<10", "10", "20", "40", "80", "160", ">160")))
 
 p2 <- df_ks %>%
-    mutate(subtype = factor(subtype, levels = c("A(H1N1) vaccinating", "A(H3N2) vaccinating", "A(H1N1) circulating", "A(H3N2) circulating"))) %>%
-    filter(subtype %in% c( "A(H1N1) circulating", "A(H3N2) circulating")) %>%
+    mutate(subtype = factor(subtype, levels = c("A(H1N1) vaccinating", "A(H3N2) vaccinating", "A(H1N1) cell-grown", "A(H3N2) cell-grown"))) %>%
+    filter(subtype %in% c( "A(H1N1) cell-grown", "A(H3N2) cell-grown")) %>%
     filter(titre_val != ">160") %>% 
     ggplot() + 
     geom_hline(yintercept = 0.8, linetype = "dashed") + 
@@ -213,13 +213,13 @@ p2 <- df_ks %>%
 stat.test_4fold <- bind_rows(
     function_add_test_4fold(ind_traj_h1h1_ind, "A(H1N1) vaccinating"),
     function_add_test_4fold(ind_traj_h3h2_ind, "A(H3N2) vaccinating"),
-    function_add_test_4fold(ind_traj_h3h2cell_ind, "A(H3N2) circulating")
+    function_add_test_4fold(ind_traj_h3h2cell_ind, "A(H3N2) cell-grown")
 ) %>% mutate(p.adj = pmax(round(p.adj, 3), 0.001))
 
 stat.test_40 <- bind_rows(
     function_add_test_40(ind_traj_h1h1_ind, "A(H1N1) vaccinating"),
     function_add_test_40(ind_traj_h3h2_ind, "A(H3N2) vaccinating"),
-    function_add_test_40(ind_traj_h3h2cell_ind, "A(H3N2) circulating")
+    function_add_test_40(ind_traj_h3h2cell_ind, "A(H3N2) cell-grown")
 ) %>% mutate(p.adj = pmax(round(p.adj, 3), 0.001))
 
 
@@ -230,7 +230,7 @@ stat.test_40 <- bind_rows(
  ## #      "*" = "<0.05",
   #      "***" = "<0.05",
  #       )) %>%
- #   mutate(subtype = factor(subtype, levels = c("A(H1N1) vaccinating", "A(H3N2) vaccinating", "A(H3N2) circulating"))) %>%
+ #   mutate(subtype = factor(subtype, levels = c("A(H1N1) vaccinating", "A(H3N2) vaccinating", "A(H3N2) cell-grown"))) %>%
  #   ggplot() + 
  #   geom_hline(yintercept = 0.0, color = "gray10") +
  #   geom_hline(yintercept = 0.2, color = "gray") +

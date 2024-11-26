@@ -97,7 +97,7 @@ p3 <- plot_data_h1cell %>%  mutate(study = recode(study, !!!study_labels)) %>%
         scale_x_continuous(breaks = seq(-2, 10, 2), labels = 2^seq(-2, 10, 2)) + 
         labs(x = "HAI fold-rise from data (GTR) at bleed date",
             y = "Model-predicted HAI fold-rise (GTR)\n at bleed date") + 
-        ggtitle("Model fits for A(H1N1) circulating strains") + guides(size = "none")
+        ggtitle("Model fits for A(H1N1) cell-grown strains") + guides(size = "none")
 
 p4 <- plot_data_h3cell %>%  mutate(study = recode(study, !!!study_labels)) %>%
     ggplot() + geom_count(aes(data, model), alpha = 0.5, shape = 21, fill = "red") +
@@ -109,7 +109,7 @@ p4 <- plot_data_h3cell %>%  mutate(study = recode(study, !!!study_labels)) %>%
         scale_x_continuous(breaks = seq(-2, 10, 2), labels = 2^seq(-2, 10, 2)) + 
         labs(x = "HAI fold-rise from data (GTR) at bleed date",
             y = "Model-predicted HAI fold-rise (GTR)\n at bleed date") + 
-        ggtitle("Model fits for A(H3N2) circulating strains") + guides(size = "none")
+        ggtitle("Model fits for A(H3N2) cell-grown strains") + guides(size = "none")
 
 p1 / p2 / p3 / p4 + plot_annotation(tag_levels = "A")
 ggsave(file = here::here("outputs", "figs", "main", "fig0.pdf"), height = 12, width = 10)
@@ -153,7 +153,7 @@ p3 <- plot_data_h1cell_pop %>%  mutate(study = recode(study, !!!study_labels)) %
         scale_x_continuous(breaks = seq(-2, 10, 2), labels = 2^seq(-2, 10, 2)) + 
         labs(x = "HAI fold-rise from data (GTR) at bleed date",
             y = "Model-predicted HAI fold-rise (GTR)\n at bleed date") + 
-        ggtitle("Model fits (no ind-effects) for A(H1N1) circulating strains") + guides(size = "none")
+        ggtitle("Model fits (no ind-effects) for A(H1N1) cell-grown strains") + guides(size = "none")
 
 p4 <- plot_data_h3cell_pop %>%  mutate(study = recode(study, !!!study_labels)) %>%
     ggplot() + geom_count(aes(data, model), alpha = 0.5, shape = 21, fill = "red") +
@@ -163,7 +163,7 @@ p4 <- plot_data_h3cell_pop %>%  mutate(study = recode(study, !!!study_labels)) %
         scale_x_continuous(breaks = seq(-2, 10, 2), labels = 2^seq(-2, 10, 2)) + 
         labs(x = "HAI fold-rise from data (GTR) at bleed date",
             y = "Model-predicted HAI fold-rise (GTR)\n at bleed date") + 
-        ggtitle("Model fits (no ind-effects) for A(H3N2) circulating strains") + guides(size = "none")
+        ggtitle("Model fits (no ind-effects) for A(H3N2) cell-grown strains") + guides(size = "none")
 
 p1 / p2 / p3 / p4 + plot_annotation(tag_levels = "A")
 ggsave(file = here::here("outputs", "figs", "main", "fig0_pop.pdf"), height = 12, width = 10)

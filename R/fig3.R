@@ -67,15 +67,15 @@ comparbw_t_meanh3n2cell_uncert <- get_marginal_boosts_uncert(best_fit_h3cell) %>
 comparbw_t_mean_uncert <- bind_rows(
     comparbw_t_meanh1n1_uncert %>% mutate(subtype = "A(H1N1) vaccinating"),
     comparbw_t_meanh3n2_uncert %>% mutate(subtype = "A(H3N2) vaccinating"),
-    comparbw_t_meanh1n1cell_uncert %>% mutate(subtype = "A(H1N1) circulating"),
-    comparbw_t_meanh3n2cell_uncert %>% mutate(subtype = "A(H3N2) circulating")
-) %>% mutate(subtype = factor(subtype, levels = c("A(H1N1) vaccinating", "A(H3N2) vaccinating",  "A(H1N1) circulating", "A(H3N2) circulating"))) %>%
+    comparbw_t_meanh1n1cell_uncert %>% mutate(subtype = "A(H1N1) cell-grown"),
+    comparbw_t_meanh3n2cell_uncert %>% mutate(subtype = "A(H3N2) cell-grown")
+) %>% mutate(subtype = factor(subtype, levels = c("A(H1N1) vaccinating", "A(H3N2) vaccinating",  "A(H1N1) cell-grown", "A(H3N2) cell-grown"))) %>%
     filter(titre_vals != ">160") %>% 
     pivot_longer(c(dur_4fold_trunc, dur_40_trunc, dur_80_trunc), names_to = "heuristic", values_to = "values") %>%
     mutate(heuristic = recode(heuristic, dur_4fold_trunc = "4-fold boost", dur_40_trunc = "HAI titre \u2265 1:40" , dur_80_trunc = "HAI titre \u2265 1:80" ))
 
-p1 <- comparbw_t_mean_uncert %>% mutate(subtype = factor(subtype, levels = c("A(H1N1) vaccinating", "A(H3N2) vaccinating", "A(H1N1) circulating", "A(H3N2) circulating"))) %>%
-    filter(subtype %in% c("A(H1N1) circulating", "A(H3N2) circulating")) %>% 
+p1 <- comparbw_t_mean_uncert %>% mutate(subtype = factor(subtype, levels = c("A(H1N1) vaccinating", "A(H3N2) vaccinating", "A(H1N1) cell-grown", "A(H3N2) cell-grown"))) %>%
+    filter(subtype %in% c("A(H1N1) cell-grown", "A(H3N2) cell-grown")) %>% 
     ggplot() + 
         geom_boxplot(aes(x = titre_vals, y = values, fill = v), alpha = 0.8) + 
             theme_bw() + 
@@ -90,10 +90,10 @@ comparbw_t_mean_uncert_marginal_eff <- comparbw_t_mean_uncert %>% select(titre_v
     pivot_wider(names_from = "v", values_from = "values") %>% 
     mutate(diff_heuristic = `<2 vaccines in last 5 seasons` - `2 or more vaccines in last 5 seasons`) %>% 
     filter(titre_vals != ">160") %>% 
-    mutate(subtype = factor(subtype, levels = c("A(H1N1) vaccinating", "A(H3N2) vaccinating", "A(H1N1) circulating", "A(H3N2) circulating"))) 
+    mutate(subtype = factor(subtype, levels = c("A(H1N1) vaccinating", "A(H3N2) vaccinating", "A(H1N1) cell-grown", "A(H3N2) cell-grown"))) 
 
 
-p2 <- comparbw_t_mean_uncert_marginal_eff %>% filter(subtype %in% c("A(H1N1) circulating", "A(H3N2) circulating"))  %>%
+p2 <- comparbw_t_mean_uncert_marginal_eff %>% filter(subtype %in% c("A(H1N1) cell-grown", "A(H3N2) cell-grown"))  %>%
      ggplot() + 
         geom_boxplot(aes(x = titre_vals, y = diff_heuristic)) + 
         facet_grid(cols = vars(subtype), rows = vars(heuristic)) + theme_bw() + 
@@ -105,13 +105,13 @@ p1 / p2  + plot_annotation(tag_levels = "A")
 ggsave(here::here("outputs", "figs", "main", "fig3.png"), height = 14, width = 12)
 
 
-comparbw_t_mean_uncert %>% filter(subtype == "A(H1N1) circulating") %>% 
+comparbw_t_mean_uncert %>% filter(subtype == "A(H1N1) cell-grown") %>% 
     group_by(v, titre_vals) %>% ggdist::mean_qi(dur_4fold, .width = 0.95)
 
 
-comparbw_t_mean_uncert %>% filter(subtype == "A(H3N2) circulating") %>% 
+comparbw_t_mean_uncert %>% filter(subtype == "A(H3N2) cell-grown") %>% 
     group_by(v, titre_vals) %>% ggdist::mean_qi(dur_4fold, .width = 0.95)
 
-comparbw_t_mean_uncert_marginal_eff %>% filter(subtype == "A(H1N1) circulating") %>% 
+comparbw_t_mean_uncert_marginal_eff %>% filter(subtype == "A(H1N1) cell-grown") %>% 
     filter(heuristic == "HAI titre \u2265 1:80") %>%
     group_by(t, titre_vals) %>% ggdist::mean_qi(diff_heuristic, .width = 0.95)
