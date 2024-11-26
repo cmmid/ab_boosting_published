@@ -87,11 +87,6 @@ plot_effect_sizes <- function(data_stan, stan_fit, filename, study_labels_alt) {
 
 plot_marginal_post <- function(data_stan, stan_fit, filename, study_labels) {
 
-   # data_stan <- h3only_stan
-   # stan_fit <- fit_h3only
-   # filename <- "h3only"
-   # study_labels
-
     custom_plot <- scale_y_continuous(breaks = -5:7, labels = 2^c(-5:7), limits = c(0, 5)) 
     custom_plot2 <- scale_y_continuous(breaks = seq(-4, 1, 0.2), labels = round(2^seq(-4, 1, 0.2), 2)) 
 
