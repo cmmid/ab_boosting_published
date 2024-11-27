@@ -95,20 +95,53 @@ plot_marginal_post <- function(data_stan, stan_fit, filename, study_labels) {
 
     boost_year <- stan_fit %>% as_draws_df %>% spread_draws(ps_study[s]) %>% mutate(s = recode(s, !!!study_labels) )
 
+    mean_values_boosting <- boosting_t %>%
+        group_by(titre_vals) %>% mean_qi %>% 
+        summarize(
+            min_upper = min(ps_boost.upper, na.rm = TRUE),
+            max_lower = max(ps_boost.lower, na.rm = TRUE)
+        ) %>% mutate(sig = max_lower - min_upper > 0) 
+
+    mean_values_waning <- waning_t %>%
+        group_by(titre_vals) %>% mean_qi %>% 
+        summarize(
+            min_upper = min(ps_wane.upper, na.rm = TRUE),
+            max_lower = max(ps_wane.lower, na.rm = TRUE)
+        ) %>% mutate(sig = max_lower - min_upper > 0) 
+
+    mean_values_study <- boost_year %>%
+        group_by(s) %>% mean_qi %>% 
+        summarize(
+            min_upper = min(.upper, na.rm = TRUE),
+            max_lower = max(.lower, na.rm = TRUE)
+        ) %>% mutate(sig = max_lower - min_upper > 0) 
+
     p1_t <- boosting_t %>% 
         ggplot() + 
+            geom_hline(data = mean_values_boosting, aes(yintercept = min_upper, color = sig), linetype = "dashed") + 
+            geom_hline(data = mean_values_boosting, aes(yintercept = max_lower, color = sig), linetype = "dashed") + 
+            guides(color = "none") + 
+            scale_color_manual(values =  c("TRUE" = "red", "FALSE" = "gray")) +
             stat_pointinterval(aes(x = titre_vals, y = ps_boost)) +
             scale_y_continuous(breaks = c(0:5), labels = 2^c(0:5)) + 
             theme_bw() + theme(axis.text.x = element_text(angle = 90)) + 
             labs(x = "Pre-vaccine HAI titre", y = "Marginal posterior \ndistribution of titre boosting")
     p2_t <- waning_t %>% 
         ggplot() + 
+            geom_hline(data = mean_values_waning, aes(yintercept = min_upper, color = sig), linetype = "dashed") + 
+            geom_hline(data = mean_values_waning, aes(yintercept = max_lower, color = sig), linetype = "dashed") + 
+            guides(color = "none") + 
+             scale_color_manual(values =  c("TRUE" = "red", "FALSE" = "gray")) +
             stat_pointinterval(aes(x = titre_vals, y = ps_wane)) + 
              theme_bw() + theme(axis.text.x = element_text(angle = 90)) +
             labs(x = "Pre-vaccine HAI titre", y = "Marginal posterior \ndistribution of titre waning")
 
     p3_t <- boost_year %>% 
         ggplot() + 
+            geom_hline(data = mean_values_study, aes(yintercept = min_upper, color = sig), linetype = "dashed") + 
+            geom_hline(data = mean_values_study, aes(yintercept = max_lower, color = sig), linetype = "dashed") + 
+            guides(color = "none") + 
+            scale_color_manual(values =  c("TRUE" = "red", "FALSE" = "gray")) +
             stat_pointinterval(aes(x = s, y = ps_study)) +            
             scale_y_continuous(breaks = c(0:5), labels = 2^c(0:5)) + 
             theme_bw() + theme(axis.text.x = element_text(angle = 90)) + 
@@ -131,8 +164,21 @@ plot_marginal_post <- function(data_stan, stan_fit, filename, study_labels) {
 
     md_covar <- bind_rows(mp_vh, mp_s, mp_g, mp_a)
 
+    midline <- md_covar %>% group_by(covar, covar_vals) %>%
+        mean_qi() %>% 
+        group_by(covar) %>% 
+        summarize(
+            min_upper = min(.upper, na.rm = TRUE),
+            max_lower = max(.lower, na.rm = TRUE)
+        ) %>% mutate(sig = max_lower - min_upper > 0) 
+ 
     p2 <- md_covar %>% 
-        ggplot() + stat_pointinterval(aes(covar_vals, boost)) + 
+        ggplot() + 
+        geom_hline(data = midline, aes(yintercept = min_upper, color = sig), linetype = "dashed") + 
+        geom_hline(data = midline, aes(yintercept = max_lower, color = sig), linetype = "dashed") + 
+        scale_color_manual(values = c( "gray", "red")) +
+        guides(color = "none") + 
+        stat_pointinterval(aes(covar_vals, boost)) + 
         scale_y_continuous(breaks = c(0:5), labels = 2^c(0:5)) + theme_bw() + 
         theme(axis.text.x = element_text(angle = 90)) + 
         facet_grid(cols = vars(covar), scales = "free_x", space = "free") +
@@ -154,30 +200,99 @@ plot_marginal_post <- function(data_stan, stan_fit, filename, study_labels) {
 
     md_covar_int <- bind_rows(mp_vh_int, mp_s_int, mp_g_int, mp_a_int) %>% add_titre_info
 
+    midline_covar <- md_covar_int %>% group_by(covar, covar_vals, titre_vals) %>%
+        mean_qi() %>% 
+        group_by(covar, titre_vals) %>% 
+        summarize(
+            min_upper = min(boost.upper, na.rm = TRUE),
+            max_lower = max(boost.lower, na.rm = TRUE)
+        ) %>% mutate(sig = max_lower - min_upper > 0) %>% as.data.frame
+
     p3a <- md_covar_int %>% 
         filter(covar == "Vaccine history") %>% 
-        ggplot() + stat_pointinterval(aes(titre_vals, boost, color = covar_vals), position = position_dodge(0.7)) + 
-        scale_y_continuous(breaks = c(0:5), labels = 2^c(0:5)) + 
-        labs(x = "", y = "Marginal posterior \ndistribution of boosting", color = "Vaccine history")
+        ggplot() + 
+        stat_pointinterval(aes(as.numeric(titre_vals), boost, 
+            point_color = covar_vals, interval_color = covar_vals), position = position_dodge(0.7)) + 
+        scale_color_manual(values = 
+            c("TRUE" = "red", "FALSE" = "gray")) +
+        scale_y_continuous(breaks = c(0:5), labels = 2^c(0:5)) +       theme_bw() + 
+        geom_segment(data = midline_covar %>% filter(covar == "Vaccine history"), 
+                    aes(
+                        x = as.numeric(titre_vals) - 0.4, xend =  as.numeric(titre_vals) + 0.4,
+                        y = min_upper, yend = min_upper, color = sig), linetype = "dashed", size = 0.7) + 
+                geom_segment(data = midline_covar %>% filter(covar == "Vaccine history"), 
+                    aes(
+                        x = as.numeric(titre_vals) - 0.4, xend =  as.numeric(titre_vals) + 0.4,
+                        y = max_lower, color = sig), 
+                        position = position_dodge(width = 0.5), linetype = "dashed", size =  0.7) + 
+        scale_x_continuous(breaks = c(1:10), labels = midline_covar$titre_val %>% unique) +       theme_bw() + 
+        guides(color = "none") + 
+        labs(x = "", y = "Marginal posterior \ndistribution of boosting", point_color = "Vaccine history", interval_color = "Vaccine history")
+
     p3b <- md_covar_int %>% 
         filter(covar == "Site") %>% 
-        ggplot() + stat_pointinterval(aes(titre_vals, boost, color = covar_vals), position = position_dodge(0.7)) + 
-        scale_y_continuous(breaks = c(0:5), labels = 2^c(0:5)) + 
-        labs(x = "", y = "Marginal posterior \ndistribution of boosting", color = "Site")
+        ggplot() + 
+        stat_pointinterval(aes(as.numeric(titre_vals), boost, 
+            point_color = covar_vals, interval_color = covar_vals), position = position_dodge(0.7)) + 
+        scale_color_manual(values = 
+            c("TRUE" = "red", "FALSE" = "gray")) +
+        scale_y_continuous(breaks = c(0:5), labels = 2^c(0:5)) +       theme_bw() + 
+        geom_segment(data = midline_covar %>% filter(covar == "Site"), 
+                    aes(
+                        x = as.numeric(titre_vals) - 0.4, xend =  as.numeric(titre_vals) + 0.4,
+                        y = min_upper, yend = min_upper, color = sig), linetype = "dashed", size = 0.7) + 
+                geom_segment(data = midline_covar %>% filter(covar == "Site"), 
+                    aes(
+                        x = as.numeric(titre_vals) - 0.4, xend =  as.numeric(titre_vals) + 0.4,
+                        y = max_lower, color = sig), 
+                        position = position_dodge(width = 0.5), linetype = "dashed", size = 0.7) + 
+        scale_x_continuous(breaks = c(1:10), labels = midline_covar$titre_val %>% unique) +       theme_bw() +
+       guides(color = "none") +  
+        labs(x = "", y = "Marginal posterior \ndistribution of boosting", point_color = "Site", interval_color = "Site")
     p3c <- md_covar_int %>% 
-            filter(covar == "Sex") %>% 
-            ggplot() + stat_pointinterval(aes(titre_vals, boost, color = covar_vals), position = position_dodge(0.7)) + 
-            scale_y_continuous(breaks = c(0:5), labels = 2^c(0:5)) + 
-            labs(x = "", y = "Marginal posterior \ndistribution of boosting", color = "Sex")
+        filter(covar == "Sex") %>% 
+        ggplot() + 
+        stat_pointinterval(aes(as.numeric(titre_vals), boost, 
+            point_color = covar_vals, interval_color = covar_vals), position = position_dodge(0.7)) + 
+        scale_color_manual(values = 
+            c("TRUE" = "red", "FALSE" = "gray")) +
+        scale_y_continuous(breaks = c(0:5), labels = 2^c(0:5)) +       theme_bw() + 
+        geom_segment(data = midline_covar %>% filter(covar == "Sex"), 
+                    aes(
+                        x = as.numeric(titre_vals) - 0.4, xend =  as.numeric(titre_vals) + 0.4,
+                        y = min_upper, yend = min_upper, color = sig), linetype = "dashed", size = 0.7) + 
+                geom_segment(data = midline_covar %>% filter(covar == "Sex"), 
+                    aes(
+                        x = as.numeric(titre_vals) - 0.4, xend =  as.numeric(titre_vals) + 0.4,
+                        y = max_lower, color = sig), 
+                        position = position_dodge(width = 0.5), linetype = "dashed", size = 0.7) + 
+        scale_x_continuous(breaks = c(1:10), labels = midline_covar$titre_val %>% unique) +       theme_bw() +
+       guides(color = "none") +  
+        labs(x = "", y = "Marginal posterior \ndistribution of boosting", point_color = "Sex", interval_color = "Sex")
     p3d <- md_covar_int %>% 
-            filter(covar == "Age group") %>% 
-            ggplot() + stat_pointinterval(aes(titre_vals, boost, color = covar_vals), position = position_dodge(0.7)) + 
-            scale_y_continuous(breaks = c(0:5), labels = 2^c(0:5)) + 
-            labs(x = "", y = "Marginal posterior \ndistribution of boosting", color = "Age group")      
+        filter(covar == "Age group") %>% 
+        ggplot() + 
+        stat_pointinterval(aes(as.numeric(titre_vals), boost, 
+            point_color = covar_vals, interval_color = covar_vals), position = position_dodge(0.7)) + 
+        scale_color_manual(values = 
+            c("TRUE" = "red", "FALSE" = "gray")) +
+        scale_y_continuous(breaks = c(0:5), labels = 2^c(0:5)) +       theme_bw() + 
+        geom_segment(data = midline_covar %>% filter(covar == "Age group"), 
+                    aes(
+                        x = as.numeric(titre_vals) - 0.4, xend =  as.numeric(titre_vals) + 0.4,
+                        y = min_upper, yend = min_upper, color = sig), linetype = "dashed", size = 0.7) + 
+                geom_segment(data = midline_covar %>% filter(covar == "Age group"), 
+                    aes(
+                        x = as.numeric(titre_vals) - 0.4, xend =  as.numeric(titre_vals) + 0.4,
+                        y = max_lower, color = sig), 
+                        position = position_dodge(width = 0.5), linetype = "dashed", size = 0.7) + 
+        scale_x_continuous(breaks = c(1:10), labels = midline_covar$titre_val %>% unique) +       theme_bw() +
+       guides(color = "none") +  
+        labs(x = "", y = "Marginal posterior \ndistribution of boosting", point_color = "Age group", interval_color = "Age group")
         
     p3 <- p3a / p3b / p3c / p3d
 
-    p1 / p2 / p3 + plot_layout(heights = c(1, 1, 3)) + 
+    p1 / p2 / p3 + plot_layout(heights = c(1, 1, 5)) + 
         plot_annotation(tag_levels = "A")
     ggsave(here::here("outputs", "figs", "fits_hcwonly", paste0("marginal_", filename, ".pdf")), height = 12, width = 10)
 

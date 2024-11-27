@@ -35,6 +35,25 @@ source(here::here("R", "model_data_hcwonly.R"))
 
 ```
 
+## Extract the data cleaning process
+
+```{r}
+
+H1N1_cell_info <- readRDS(file = here::here("outputs", "data_clean", "hcw_reg_info_H1N1_cell.RDS") )
+H3N2_cell_info <- readRDS(file = here::here("outputs", "data_clean", "hcw_reg_info_H3N2_cell.RDS") )
+H1N1_vacc_info <- readRDS(file = here::here("outputs", "data_clean", "hcw_reg_info_H1N1_vac.RDS") )
+H3N2_vacc_info <- readRDS(file = here::here("outputs", "data_clean", "hcw_reg_info_H3N2_vac.RDS") )
+
+bind_rows(
+    H1N1_cell_info,
+    H3N2_cell_info,
+    H1N1_vacc_info,
+    H3N2_vacc_info
+)
+
+
+```
+
 ## Run the regression model, hcw only
 
 ```{r}

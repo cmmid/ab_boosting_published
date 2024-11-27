@@ -15,15 +15,14 @@ load(file = here::here("outputs", "data_model", "h1only_hcwonly_stan.RData"))
 
 best_fit_h3only <- readRDS(here::here("outputs", "stan", "fit_h3only_hcwonly_base.RData"))
 best_fit_h1only <- readRDS(here::here("outputs", "stan", "fit_h1only_hcwonly_base.RData"))
-best_fit_h3cell <- readRDS(here::here("outputs", "stan", "fit_h3cell_hcwonly_base.RData"))
 best_fit_h1cell <- readRDS(here::here("outputs", "stan", "fit_h1cell_hcwonly_base.RData"))
 
 best_fit_vac_compare <- bind_rows(
     get_boost_wane_sample(best_fit_h1only, "A(H1N1) vaccinating"),
     get_boost_wane_sample(best_fit_h3only, "A(H3N2) vaccinating"),
-    get_boost_wane_sample(best_fit_h3cell, "A(H3N2) circulating"),
-    get_boost_wane_sample(best_fit_h1cell, "A(H1N1) circulating")
-) %>% mutate(subtype = factor(subtype, levels = c("A(H1N1) vaccinating", "A(H3N2) vaccinating", "A(H1N1) circulating", "A(H3N2) circulating")))
+    get_boost_wane_sample(best_fit_h3cell, "A(H3N2) cell-grown"),
+    get_boost_wane_sample(best_fit_h1cell, "A(H1N1) cell-grown")
+) %>% mutate(subtype = factor(subtype, levels = c("A(H1N1) vaccinating", "A(H3N2) vaccinating", "A(H1N1) cell-grown", "A(H3N2) cell-grown")))
 
 best_fit_vac_compare_mean <- best_fit_vac_compare %>% group_by(subtype, titre_vals) %>%
     summarise(boost_peak = mean(ps_boost), wane_s = mean(ps_wane))
@@ -32,13 +31,13 @@ dfh1vac <- data.frame(t = h1only_stan$titre_i,subtype = "A(H1N1) vaccinating") %
     group_by(subtype, titre_vals) %>% summarise(n = n())
 dfh3vac <- data.frame(t = h3only_stan$titre_i,subtype = "A(H3N2) vaccinating") %>% add_titre_info %>% 
     group_by(subtype, titre_vals) %>% summarise(n = n())
-dfh1cell <- data.frame(t = h1cell_stan$titre_i,subtype = "A(H1N1) circulating") %>% add_titre_info %>% 
+dfh1cell <- data.frame(t = h1cell_stan$titre_i,subtype = "A(H1N1) cell-grown") %>% add_titre_info %>% 
     group_by(subtype, titre_vals) %>% summarise(n = n())
-dfh3cell <- data.frame(t = h3cell_stan$titre_i,subtype = "A(H3N2) circulating") %>% add_titre_info %>% 
+dfh3cell <- data.frame(t = h3cell_stan$titre_i,subtype = "A(H3N2) cell-grown") %>% add_titre_info %>% 
     group_by(subtype, titre_vals) %>% summarise(n = n())
 
 subtype_numbers <- bind_rows(dfh1vac, dfh3vac, dfh1cell, dfh3cell) %>% 
-    mutate(subtype = factor(subtype, levels = c("A(H1N1) vaccinating", "A(H3N2) vaccinating", "A(H1N1) circulating", "A(H3N2) circulating")))
+    mutate(subtype = factor(subtype, levels = c("A(H1N1) vaccinating", "A(H3N2) vaccinating", "A(H1N1) cell-grown", "A(H3N2) cell-grown")))
 
 best_fit_vac_compare_mean <- best_fit_vac_compare_mean %>%
     left_join(subtype_numbers)
@@ -117,17 +116,17 @@ best_fit_h3cell_plot <- best_fit_h3cell %>% as_draws_df %>% spread_draws(ps_boos
 hXXX_plot <- bind_rows(
     h1only_plot %>% mutate(subtype = "A(H1N1) vaccinating"),
     h3only_plot %>% mutate(subtype = "A(H3N2) vaccinating"),
-    h1cell_plot %>% mutate(subtype = "A(H1N1) circulating"),
-    h3cell_plot %>% mutate(subtype = "A(H3N2) circulating")
-) %>% mutate(subtype = factor(subtype, levels = c("A(H1N1) vaccinating", "A(H3N2) vaccinating", "A(H1N1) circulating", "A(H3N2) circulating")))
+    h1cell_plot %>% mutate(subtype = "A(H1N1) cell-grown"),
+    h3cell_plot %>% mutate(subtype = "A(H3N2) cell-grown")
+) %>% mutate(subtype = factor(subtype, levels = c("A(H1N1) vaccinating", "A(H3N2) vaccinating", "A(H1N1) cell-grown", "A(H3N2) cell-grown")))
 
 
 best_fit_hXXX_plot <- bind_rows(
     best_fit_h1only_plot %>% mutate(subtype = "A(H1N1) vaccinating"),
     best_fit_h3only_plot %>% mutate(subtype = "A(H3N2) vaccinating"),
-    best_fit_h1cell_plot %>% mutate(subtype = "A(H1N1) circulating"),
-    best_fit_h3cell_plot %>% mutate(subtype = "A(H3N2) circulating")
-) %>% mutate(subtype = factor(subtype, levels = c("A(H1N1) vaccinating", "A(H3N2) vaccinating", "A(H1N1) circulating", "A(H3N2) circulating")))
+    best_fit_h1cell_plot %>% mutate(subtype = "A(H1N1) cell-grown"),
+    best_fit_h3cell_plot %>% mutate(subtype = "A(H3N2) cell-grown")
+) %>% mutate(subtype = factor(subtype, levels = c("A(H1N1) vaccinating", "A(H3N2) vaccinating", "A(H1N1) cell-grown", "A(H3N2) cell-grown")))
 
 p1DXX <- best_fit_hXXX_plot %>% filter(!titre_vals %in% "2560") %>%
     ggplot() +  
@@ -166,7 +165,7 @@ p1Diii <- best_fit_h1cell_plot %>% filter(!titre_vals %in% "2560") %>%
     stat_pointinterval(aes(x = titre_vals, y = ps_boost_vh_t, color = v), size = 2, shape = 21, position = position_dodge(0.7)) +  theme_bw() + 
     guides(size = "none") + 
     labs(x = "Pre-vaccination HAI titre values", y = "Peak fold-rise in HAI titre", color = "Number of \nprevious vaccines", 
-        title = "Marginal posterior distribution for A(H1N1) circulating strains for pre-vaccination titre\n and vaccine history") + 
+        title = "Marginal posterior distribution for A(H1N1) cell-grown strains for pre-vaccination titre\n and vaccine history") + 
     scale_y_continuous(breaks = -1:9, labels = round(2^c(-1:9), 2), limits = c(-1, 9))
 
 
@@ -176,7 +175,7 @@ p1Div <- best_fit_h3cell_plot %>% filter(!titre_vals %in% "2560") %>%
     stat_pointinterval(aes(x = titre_vals, y = ps_boost_vh_t, color = v), size = 2, shape = 21, position = position_dodge(0.7)) +  theme_bw() + 
     guides(size = "none") + 
     labs(x = "Pre-vaccination HAI titre values", y = "Peak fold-rise in HAI titre", color = "Number of \nprevious vaccines", 
-        title = "Marginal posterior distribution for A(H3N2) circulating strains for pre-vaccination titre\n and vaccine history") + 
+        title = "Marginal posterior distribution for A(H3N2) cell-grown strains for pre-vaccination titre\n and vaccine history") + 
     scale_y_continuous(breaks = -1:9, labels = round(2^c(-1:9), 2), limits = c(-1, 9))
 
 

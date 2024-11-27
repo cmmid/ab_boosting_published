@@ -9,7 +9,7 @@ source("R/main.R")
 
 ```{r}
 
-
+require()
 
 h1only_hcwonly_df_get <- load(here::here("outputs", "data_model", "h1only_hcwonly_df.RData"))
 h1only_df <- get(h1only_hcwonly_df_get)
@@ -17,12 +17,21 @@ h1only_df <- get(h1only_hcwonly_df_get)
 h3only_hcwonly_df_get <- load(here::here("outputs", "data_model", "h3only_hcwonly_df.RData"))
 h3only_df <- get(h3only_hcwonly_df_get)
 
+h1cell_hcwonly_df_get <- load(here::here("outputs", "data_model", "h1cell_hcwonly_df.RData"))
+h1cell_df <- get(h1cell_hcwonly_df_get)
+
+h3cell_hcwonly_df_get <- load(here::here("outputs", "data_model", "h3cell_hcwonly_df.RData"))
+h3cell_df <- get(h3cell_hcwonly_df_get)
+
 # Get info on timings
 h3only_df %>% ggplot() + geom_histogram(aes(x = days))
 h3only_df$days[h3only_df$days > 65]
 
 # Get info on number of samples
+h1only_df %>% nrow
+h1cell_df %>% nrow
 h3only_df %>% nrow
+h3cell_df %>% nrow
 
 # Get info on number of inidividuals
 h3only_df %>% mutate(pid_only = substr(pid, 1, 7) ) %>% pull(pid_only) %>% unique %>% length
@@ -33,7 +42,7 @@ h3only_df %>% pull(prevac) %>% table
 
 h3only_df %>% mutate(pid_only = substr(pid, 1, 7) ) %>% select(!c(pid, days)) %>% unique %>% pull(prevac) %>% table
 
-h3only_df %>% nrows
+h3only_df %>% nrow
 
 
 ```
